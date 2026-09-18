@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Panel</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, sans-serif; }
+    body {
+      background: linear-gradient(145deg, #0b1a2e, #1b2f45);
+      min-height: 100vh; padding: 2rem 1rem;
+      display: flex; justify-content: center;
+    }
+    .panel {
+      background: rgba(18, 30, 46, 0.9);
+      backdrop-filter: blur(12px);
+      border-radius: 2rem; padding: 2rem;
+      max-width: 800px; width: 100%;
+      border: 1px solid rgba(120, 180, 255, 0.15);
+      box-shadow: 0 30px 50px -15px rgba(0, 0, 0, 0.8);
+    }
+    .header {
+      display: flex; justify-content: space-between;
+      align-items: center; margin-bottom: 2rem;
+      flex-wrap: wrap; gap: 1rem;
+    }
+    h1 {
+      color: #e2f0ff; font-size: 1.4rem; font-weight: 500;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .logout-btn {
+      background: rgba(220, 100, 140, 0.15);
+      border: 1px solid rgba(220, 100, 140, 0.4);
+      color: #ffb8d0; padding: 0.6rem 1.2rem;
+      border-radius: 2rem; font-size: 0.85rem;
+      cursor: pointer; text-decoration: none; transition: 0.15s;
+    }
+    .logout-btn:hover { background: rgba(220, 100, 140, 0.25); }
+    .user-list { display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 2rem; }
+    .user-row {
+      background: #0f1e2e; padding: 1rem 1.2rem;
+      border-radius: 1.5rem; border: 1px solid #1f3e58;
+      display: flex; justify-content: space-between;
+      align-items: center; flex-wrap: wrap; gap: 0.8rem;
+    }
+    .user-row:hover { border-color: #346a94; }
+    .user-info { display: flex; flex-direction: column; gap: 0.2rem; flex: 1; min-width: 150px; }
+    .user-name { color: #c6defa; font-weight: 600; font-size: 1rem; }
+    .user-balance { color: #84a9cc; font-size: 0.85rem; }
+    .user-actions { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+    .user-actions input {
+      background: #0c1926; border: 1px solid #264a66;
+      border-radius: 2rem; padding: 0.5rem 0.9rem;
+      width: 110px; color: #e0efff; font-size: 0.9rem;
+      outline: none; text-align: right;
+    }
+    .user-actions input:focus { border-color: #3f82b3; }
+    .btn-sm {
+      background: #1a334a; border: 1px solid #2b5377;
+      border-radius: 2rem; padding: 0.5rem 1rem;
+      font-size: 0.8rem; color: #b8d8ff;
+      cursor: pointer; transition: 0.1s; white-space: nowrap;
+    }
+    .btn-sm:hover { background: #244866; }
+    .btn-set { background: #17522e; border-color: #2d8b4a; color: #c6f0d0; }
+    .btn-set:hover { background: #1e6d3d; }
+    .btn-del { background: #5c1e2a; border-color: #8b2d3f; color: #ffc0cc; }
+    .btn-del:hover { background: #7a2838; }
+    .add-section {
+      display: flex; gap: 0.8rem; align-items: center;
+      border-top: 1px solid #1f3e58; padding-top: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .add-section input {
+      background: #0c1926; border: 1px solid #264a66;
+      border-radius: 2rem; padding: 0.8rem 1.2rem;
+      flex: 1; min-width: 200px; color: #e0efff;
+      font-size: 0.95rem; outline: none;
+    }
+    .add-section input:focus { border-color: #3f82b3; }
+    .btn-add {
+      background: linear-gradient(135deg, #2d8b4a, #17522e);
+      border: none; border-radius: 2rem;
+      padding: 0.8rem 1.8rem; color: white;
+      font-weight: 600; cursor: pointer; transition: 0.15s;
+    }
+    .btn-add:hover { filter: brightness(1.15); }
+    .msg {
+      font-size: 0.8rem; margin-top: 0.6rem;
+      min-height: 1.2rem; text-align: center;
+    }
+    .msg.ok { color: #a7e0b0; }
+    .msg.err { color: #ff9e8a; }
+    .top-link {
+      display: block; text-align: center; margin-top: 1.5rem;
+      color: #6b8fb0; font-size: 0.85rem; text-decoration: none;
+    }
+    .top-link:hover { color: #b0d0f0; }
+  </style>
+</head>
+<body>
+  <div class="panel">
+    <div class="header">
+      <h1>👑 Admin · Balance Control</h1>
+      <a href="/admin/logout" class="logout-btn">Logout</a>
+    </div>
+
+    <div class="user-list" id="userList"></div>
+
+    <div class="add-section">
+      <input type="text" id="newPersonaName" placeholder="new persona name (a-z, 0-9)" maxlength="20">
+      <button class="btn-add" id="addBtn">+ Add Persona</button>
+    </div>
+    <div class="msg" id="message"></div>
+
+    <a href="/" class="top-link">← View public wallet</a>
+  </div>
+
+  <script>
+    const userList = document.getElementById('userList');
+    const newPersonaName = document.getElementById('newPersonaName');
+    const addBtn = document.getElementById('addBtn');
+    const message = document.getElementById('message');
+
+    function showMsg(text, isError) {
+      message.textContent = text;
+      message.className = 'msg ' + (isError ? 'err' : 'ok');
+      setTimeout(() => { message.textContent = ''; }, 3000);
+    }
+
+    async function loadPersonas() {
+      const res = await fetch('/api/personas');
+      const list = await res.json();
+      userList.innerHTML = list.map(p => `
+        <div class="user-row" data-name="${p.name}">
+          <div class="user-info">
+            <span class="user-name">${p.name}</span>
+            <span class="user-balance">balance: $${p.balance.toFixed(2)}</span>
+          </div>
+          <div class="user-actions">
+            <input type="number" class="balance-input" value="${p.balance.toFixed(2)}" step="0.01" min="0">
+            <button class="btn-sm btn-set" data-action="set">Set</button>
+            <button class="btn-sm btn-del" data-action="del">Delete</button>
+          </div>
+        </div>
+      `).join('');
+
+      // Attach listeners
+      document.querySelectorAll('.user-row').forEach(row => {
+        const name = row.getAttribute('data-name');
+        const input = row.querySelector('.balance-input');
+
+        row.querySelector('[data-action="set"]').addEventListener('click', async () => {
+          const balance = parseFloat(input.value);
+          if (isNaN(balance) || balance < 0) {
+            showMsg('Invalid balance.', true);
+            return;
+          }
+          const res = await fetch('/admin/api/set-balance', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, balance })
+          });
+          if (res.ok) {
+            showMsg(`Updated ${name}'s balance to $${balance.toFixed(2)}`, false);
+            loadPersonas();
+          } else {
+            showMsg('Failed to update.', true);
+          }
+        });
+
+        row.querySelector('[data-action="del"]').addEventListener('click', async () => {
+          if (!confirm(`Delete persona "${name}"? This cannot be undone.`)) return;
+          const res = await fetch('/admin/api/delete-persona', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name })
+          });
+          if (res.ok) {
+            showMsg(`Deleted ${name}.`, false);
+            loadPersonas();
+          } else {
+            const err = await res.json();
+            showMsg(err.error || 'Failed to delete.', true);
+          }
+        });
+      });
+    }
+
+    addBtn.addEventListener('click', async () => {
+      const name = newPersonaName.value.trim().toLowerCase();
+      if (!name) { showMsg('Enter a name.', true); return; }
+      const res = await fetch('/admin/api/add-persona', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name })
+      });
+      if (res.ok) {
+        showMsg(`Added persona "${name}" with $200.00`, false);
+        newPersonaName.value = '';
+        loadPersonas();
+      } else {
+        const err = await res.json();
+        showMsg(err.error || 'Failed to add.', true);
+      }
+    });
+
+    newPersonaName.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') addBtn.click();
+    });
+
+    loadPersonas();
+  </script>
+</body>
+</html>
