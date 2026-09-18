@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>demo balance · admin panel</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+    }
+    body {
+      background: linear-gradient(145deg, #0b1a2e 0%, #1b2f45 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .app-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      max-width: 900px;
+      width: 100%;
+      align-items: center;
+    }
+    .card {
+      background: rgba(18, 30, 46, 0.85);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 2.5rem;
+      padding: 2rem 2rem 2.2rem;
+      width: 100%;
+      box-shadow: 0 30px 50px -15px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(120, 180, 255, 0.12);
+    }
+    .hidden {
+      display: none !important;
+    }
+    .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+    }
+    .header h1 {
+      font-size: 1.7rem;
+      font-weight: 500;
+      letter-spacing: -0.02em;
+      background: linear-gradient(130deg, #eef7ff, #b3d9ff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .header h1 span {
+      font-size: 1.8rem;
+      filter: drop-shadow(0 2px 6px rgba(0, 180, 255, 0.5));
+    }
+    .badge {
+      background: rgba(0, 200, 255, 0.15);
+      padding: 0.4rem 0.9rem;
+      border-radius: 100px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: #8ec9ff;
+      border: 1px solid rgba(0, 180, 255, 0.3);
+      backdrop-filter: blur(4px);
+    }
+    .balance-display {
+      background: linear-gradient(135deg, #0a1622, #111f2e);
+      border-radius: 2rem;
+      padding: 1.8rem 1.8rem 1.5rem;
+      margin-bottom: 1.8rem;
+      border: 1px solid rgba(70, 150, 255, 0.2);
+      box-shadow: inset 0 5px 12px rgba(0, 0, 0, 0.6), 0 10px 20px -8px black;
+      position: relative;
+      overflow: hidden;
+    }
+    .balance-display::after {
+      content: "DEMO";
+      position: absolute;
+      bottom: 0.8rem;
+      right: 1.4rem;
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: rgba(255, 255, 255, 0.03);
+      letter-spacing: 0.2em;
+      pointer-events: none;
+      user-select: none;
+    }
+    .currency-label {
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #7b9bc2;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .balance-amount {
+      font-size: 3.7rem;
+      font-weight: 700;
+      color: #e2f0ff;
+      line-height: 1.1;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: baseline;
+      gap: 0.3rem;
+      text-shadow: 0 2px 15px rgba(0, 180, 255, 0.3);
+      word-break: break-word;
+    }
+    .balance-amount .currency-sign {
+      font-size: 2.2rem;
+      font-weight: 500;
+      color: #6b9ed6;
+      margin-right: 0.2rem;
+    }
+    .action-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.8rem;
+      margin: 1.8rem 0 1.5rem;
+    }
+    .btn {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 2rem;
+      padding: 1rem 0.5rem;
+      font-size: 1rem;
+      font-weight: 500;
+      color: #d3e5ff;
+      cursor: pointer;
+      transition: 0.15s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 5px 12px -5px rgba(0, 0, 0, 0.5);
+      letter-spacing: 0.01em;
+      user-select: none;
+    }
+    .btn:hover {
+      background: rgba(80, 160, 255, 0.15);
+      border-color: rgba(100, 180, 255, 0.3);
+      color: white;
+      transform: scale(1.01);
+    }
+    .btn:active {
+      transform: scale(0.98);
+      background: rgba(80, 160, 255, 0.25);
+    }
+    .btn.deposit {
+      color: #a7e0b0;
+      border-color: rgba(80, 220, 120, 0.2);
+    }
+    .btn.withdraw {
+      color: #ffc2a5;
+      border-color: rgba(255, 140, 100, 0.2);
+    }
+    .input-section {
+      margin-bottom: 1.2rem;
+    }
+    .input-section label {
+      display: block;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #7b9bc2;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+    .amount-input-wrapper {
+      display: flex;
+      align-items: center;
+      background: #0c1926;
+      border-radius: 2rem;
+      padding: 0.1rem 0.1rem 0.1rem 1.5rem;
+      border: 1px solid #1d3349;
+      transition: 0.15s;
+      box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.6);
+    }
+    .amount-input-wrapper:focus-within {
+      border-color: #2f6396;
+      box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.6), 0 0 0 3px rgba(50, 130, 220, 0.2);
+    }
+    .amount-input-wrapper .currency-prefix {
+      font-size: 1.3rem;
+      color: #7b9bc2;
+      font-weight: 500;
+      margin-right: 0.3rem;
+    }
+    .amount-input-wrapper input {
+      background: transparent;
+      border: none;
+      padding: 1rem 0.5rem 1rem 0;
+      width: 100%;
+      font-size: 1.2rem;
+      font-weight: 500;
+      color: #e0efff;
+      outline: none;
+    }
+    .amount-input-wrapper input::placeholder {
+      color: #2f4b6b;
+      font-weight: 400;
+      font-size: 1rem;
+    }
+    .amount-input-wrapper input[type="number"]::-webkit-outer-spin-button,
+    .amount-input-wrapper input[type="number"]::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    .preset-row {
+      display: flex;
+      gap: 0.6rem;
+      margin-top: 0.8rem;
+      justify-content: flex-end;
+    }
+    .preset-btn {
+      background: #0e1e2f;
+      border: 1px solid #1e3a55;
+      border-radius: 2rem;
+      padding: 0.5rem 1rem;
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #9bb9dd;
+      cursor: pointer;
+      transition: 0.1s;
+    }
+    .preset-btn:hover {
+      background: #193752;
+      color: white;
+      border-color: #2f6396;
+    }
+    .footer-actions {
+      display: flex;
+      gap: 0.8rem;
+      margin-top: 0.5rem;
+    }
+    .footer-actions .btn {
+      flex: 1;
+      background: #0a1725;
+      border: 1px solid #213c55;
+      font-size: 0.95rem;
+    }
+    .reset-btn {
+      color: #c0a0b0;
+    }
+    .reset-btn:hover {
+      background: rgba(200, 80, 120, 0.1);
+      border-color: rgba(220, 100, 140, 0.4);
+      color: #ffb8d0;
+    }
+    .history {
+      margin-top: 1.8rem;
+      border-top: 1px solid rgba(90, 140, 200, 0.15);
+      padding-top: 1.4rem;
+    }
+    .history-title {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: #5a7c9e;
+      margin-bottom: 0.9rem;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+    }
+    .history-list {
+      list-style: none;
+      max-height: 130px;
+      overflow-y: auto;
+      padding-right: 5px;
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+    }
+    .history-list li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(0, 0, 0, 0.2);
+      padding: 0.7rem 1rem;
+      border-radius: 1.2rem;
+      font-size: 0.9rem;
+      color: #b8d0ea;
+      border-left: 3px solid #2d6b9e;
+      backdrop-filter: blur(4px);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    }
+    .history-list .history-amount {
+      font-weight: 600;
+      color: #d6e9ff;
+    }
+    .history-list .history-action {
+      font-size: 0.75rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 30px;
+      background: #122b40;
+      color: #98b9dd;
+    }
+    .empty-history {
+      color: #315574;
+      font-size: 0.85rem;
+      text-align: center;
+      padding: 1rem 0;
+      font-style: italic;
+      background: rgba(0,0,0,0.1);
+      border-radius: 1rem;
+    }
+    .note {
+      text-align: center;
+      font-size: 0.65rem;
+      color: #3e5a78;
+      margin-top: 1rem;
+      letter-spacing: 0.05em;
+    }
+    .admin-panel {
+      background: rgba(10, 20, 33, 0.95);
+      backdrop-filter: blur(12px);
+      border-radius: 2rem;
+      padding: 1.8rem 2rem;
+      border: 1px solid #2e5070;
+      box-shadow: 0 25px 40px -12px black;
+      width: 100%;
+    }
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    .admin-header h2 {
+      color: #b8d8ff;
+      font-weight: 500;
+      font-size: 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .admin-close-btn {
+      background: #162b3e;
+      border: none;
+      border-radius: 2rem;
+      padding: 0.5rem 1.2rem;
+      color: #aac4e0;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: 0.15s;
+    }
+    .admin-close-btn:hover {
+      background: #1f3e58;
+      color: white;
+    }
+    .user-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.8rem;
+      max-height: 280px;
+      overflow-y: auto;
+      padding-right: 6px;
+      margin-bottom: 1.8rem;
+    }
+    .user-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #0f1e2e;
+      padding: 0.9rem 1.2rem;
+      border-radius: 1.8rem;
+      border: 1px solid #1f3e58;
+      transition: 0.1s;
+    }
+    .user-row:hover {
+      border-color: #346a94;
+      background: #122435;
+    }
+    .user-info {
+      display: flex;
+      flex-direction: column;
+      gap: 0.2rem;
+    }
+    .user-name {
+      font-weight: 600;
+      color: #c6defa;
+      font-size: 1rem;
+    }
+    .user-balance {
+      font-size: 0.85rem;
+      color: #84a9cc;
+    }
+    .user-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .user-actions input {
+      background: #0c1926;
+      border: 1px solid #264a66;
+      border-radius: 2rem;
+      padding: 0.4rem 0.8rem;
+      width: 100px;
+      color: #e0efff;
+      font-size: 0.9rem;
+      outline: none;
+      text-align: right;
+    }
+    .user-actions input:focus {
+      border-color: #3f82b3;
+    }
+    .user-actions .btn-sm {
+      background: #1a334a;
+      border: 1px solid #2b5377;
+      border-radius: 2rem;
+      padding: 0.4rem 1rem;
+      font-size: 0.8rem;
+      color: #b8d8ff;
+      cursor: pointer;
+      transition: 0.1s;
+      white-space: nowrap;
+    }
+    .user-actions .btn-sm.set-btn {
+      background: #17522e;
+      border-color: #2d8b4a;
+      color: #c6f0d0;
+    }
+    .user-actions .btn-sm.set-btn:hover {
+      background: #1e6d3d;
+    }
+    .add-user-section {
+      display: flex;
+      gap: 0.8rem;
+      align-items: center;
+      border-top: 1px solid #1f3e58;
+      padding-top: 1.5rem;
+      margin-top: 0.5rem;
+    }
+    .add-user-section input {
+      background: #0c1926;
+      border: 1px solid #264a66;
+      border-radius: 2rem;
+      padding: 0.8rem 1.2rem;
+      flex: 1;
+      color: #e0efff;
+      font-size: 0.95rem;
+      outline: none;
+    }
+    .add-user-section input:focus {
+      border-color: #3f82b3;
+    }
+    .admin-toggle-btn {
+      margin-top: 1rem;
+      background: transparent;
+      border: 1px dashed #3a5a78;
+      border-radius: 2rem;
+      padding: 0.6rem;
+      color: #6b8fb0;
+      font-size: 0.75rem;
+      cursor: pointer;
+      transition: 0.15s;
+      width: 100%;
+      text-align: center;
+    }
+    .admin-toggle-btn:hover {
+      border-color: #5f8fb0;
+      color: #b0d0f0;
+    }
+    .admin-tip {
+      font-size: 0.7rem;
+      color: #5a7c9e;
+      text-align: center;
+      margin-top: 0.6rem;
+      letter-spacing: 0.03em;
+    }
+    .error-msg {
+      color: #ff9e8a;
+      font-size: 0.75rem;
+      margin-top: 0.4rem;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- MAIN WALLET (visible to everyone) -->
+    <div class="card" id="walletCard">
+      <div class="header">
+        <h1><span>💎</span> demo.vault</h1>
+        <div class="badge" id="personaBadge">alex</div>
+      </div>
+
+      <div class="balance-display">
+        <div class="currency-label"><i>💵</i> available balance</div>
+        <div class="balance-amount" id="balanceDisplay">
+          <span class="currency-sign">$</span>200.00
+        </div>
+      </div>
+
+      <div class="action-grid">
+        <button class="btn deposit" id="quickDepositBtn"><span>⬇️</span> deposit 50</button>
+        <button class="btn withdraw" id="quickWithdrawBtn"><span>⬆️</span> withdraw 50</button>
+      </div>
+
+      <div class="input-section">
+        <label for="amountInput">custom amount</label>
+        <div class="amount-input-wrapper">
+          <span class="currency-prefix">$</span>
+          <input type="number" id="amountInput" placeholder="0.00" min="0.01" step="0.01">
+        </div>
+        <div class="preset-row">
+          <button class="preset-btn" data-amount="10">$10</button>
+          <button class="preset-btn" data-amount="25">$25</button>
+          <button class="preset-btn" data-amount="100">$100</button>
+          <button class="preset-btn" data-amount="250">$250</button>
+        </div>
+      </div>
+
+      <div class="footer-actions">
+        <button class="btn deposit" id="depositCustomBtn"><span>➕</span> deposit</button>
+        <button class="btn withdraw" id="withdrawCustomBtn"><span>➖</span> withdraw</button>
+      </div>
+
+      <div style="display: flex; margin-top: 0.8rem;">
+        <button class="btn reset-btn" id="resetBtn" style="flex:1; font-size:0.9rem;"><span>🔄</span> reset demo balance</button>
+      </div>
+
+      <div class="history">
+        <div class="history-title"><span>recent activity</span><span style="color:#3c6b93;">(last 5)</span></div>
+        <ul class="history-list" id="historyList">
+          <li class="empty-history">no transactions yet</li>
+        </ul>
+      </div>
+      <div class="note">⚡ demo only — no real money involved</div>
+
+      <button class="admin-toggle-btn" id="adminToggleBtn">🔒 admin access (click to show panel)</button>
+      <div class="admin-tip">only you can see the admin panel after unlocking</div>
+    </div>
+
+    <!-- ADMIN PANEL (hidden by default) -->
+    <div class="admin-panel hidden" id="adminPanel">
+      <div class="admin-header">
+        <h2>👑 admin · balance control</h2>
+        <button class="admin-close-btn" id="closeAdminBtn">✕ close</button>
+      </div>
+
+      <div class="user-list" id="userListContainer"></div>
+
+      <div class="add-user-section">
+        <input type="text" id="newUserName" placeholder="new persona name" maxlength="20">
+        <button class="btn-sm set-btn" id="addUserBtn" style="padding:0.8rem 1.5rem; border-radius:2rem;">+ add</button>
+      </div>
+      <div id="addUserError" class="error-msg"></div>
+
+      <div class="admin-tip" style="margin-top:1.2rem;">changes apply instantly · each persona has separate balance</div>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const STORAGE_KEY = 'demo_multi_persona_v1';
+      let personas = {};
+      let currentPersona = 'alex';
+
+      // DOM refs
+      const personaBadge = document.getElementById('personaBadge');
+      const balanceDisplay = document.getElementById('balanceDisplay');
+      const amountInput = document.getElementById('amountInput');
+      const quickDepositBtn = document.getElementById('quickDepositBtn');
+      const quickWithdrawBtn = document.getElementById('quickWithdrawBtn');
+      const depositCustomBtn = document.getElementById('depositCustomBtn');
+      const withdrawCustomBtn = document.getElementById('withdrawCustomBtn');
+      const resetBtn = document.getElementById('resetBtn');
+      const historyList = document.getElementById('historyList');
+      const presetBtns = document.querySelectorAll('.preset-btn');
+      const walletCard = document.getElementById('walletCard');
+      const adminPanel = document.getElementById('adminPanel');
+      const adminToggleBtn = document.getElementById('adminToggleBtn');
+      const closeAdminBtn = document.getElementById('closeAdminBtn');
+      const userListContainer = document.getElementById('userListContainer');
+      const newUserNameInput = document.getElementById('newUserName');
+      const addUserBtn = document.getElementById('addUserBtn');
+      const addUserError = document.getElementById('addUserError');
+
+      function formatMoney(amount) {
+        return amount.toFixed(2);
+      }
+
+      function loadPersonas() {
+        const stored = localStorage.getItem(STORAGE_KEY);
+        if (stored) {
+          try {
+            const parsed = JSON.parse(stored);
+            if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+              personas = parsed;
+            } else {
+              throw new Error('invalid');
+            }
+          } catch (e) {
+            personas = { alex: { balance: 200.00, transactions: [] } };
+          }
+        } else {
+          personas = { alex: { balance: 200.00, transactions: [] } };
+        }
+        for (let name in personas) {
+          if (typeof personas[name].balance !== 'number') personas[name].balance = 200.00;
+          if (!Array.isArray(personas[name].transactions)) personas[name].transactions = [];
+        }
+      }
+
+      function savePersonas() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(personas));
+      }
+
+      function getCurrentData() {
+        if (!personas[currentPersona]) {
+          personas[currentPersona] = { balance: 200.00, transactions: [] };
+        }
+        return personas[currentPersona];
+      }
+
+      function renderWallet() {
+        const data = getCurrentData();
+        personaBadge.textContent = currentPersona;
+        balanceDisplay.innerHTML = `<span class="currency-sign">$</span>${formatMoney(data.balance)}`;
+
+        const transactions = data.transactions || [];
+        if (transactions.length === 0) {
+          historyList.innerHTML = `<li class="empty-history">no transactions yet</li>`;
+        } else {
+          const recent = [...transactions].reverse().slice(0, 5);
+          historyList.innerHTML = recent.map(tx => {
+            const sign = tx.type === 'deposit' ? '+' : '−';
+            const amountFormatted = formatMoney(tx.amount);
+            const actionLabel = tx.type === 'deposit' ? 'deposit' : 'withdraw';
+            const colorStyle = tx.type === 'deposit' ? 'color: #b0e6b0;' : 'color: #ffb0a0;';
+            return `<li>
+              <span class="history-action">${actionLabel}</span>
+              <span class="history-amount" style="${colorStyle}">${sign} $${amountFormatted}</span>
+            </li>`;
+          }).join('');
+        }
+      }
+
+      function renderAdminUserList() {
+        if (!userListContainer) return;
+        const personaNames = Object.keys(personas).sort();
+        if (personaNames.length === 0) {
+          userListContainer.innerHTML = `<div class="empty-history" style="margin:1rem 0;">no personas yet</div>`;
+          return;
+        }
+        userListContainer.innerHTML = personaNames.map(name => {
+          const data = personas[name] || { balance: 0, transactions: [] };
+          const balanceFormatted = formatMoney(data.balance);
+          const isCurrent = (name === currentPersona);
+          const rowStyle = isCurrent ? 'border-color: #3f82b3; background: #112435;' : '';
+          return `
+            <div class="user-row" style="${rowStyle}">
+              <div class="user-info">
+                <span class="user-name">${name} ${isCurrent ? '●' : ''}</span>
+                <span class="user-balance">balance: $${balanceFormatted}</span>
+              </div>
+              <div class="user-actions">
+                <input type="number" id="admin_input_${name}" placeholder="new bal" value="${data.balance.toFixed(2)}" step="0.01" min="0">
+                <button class="btn-sm set-btn" data-persona="${name}" data-action="set-balance">set</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        document.querySelectorAll('.user-actions .set-btn').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const personaName = e.currentTarget.getAttribute('data-persona');
+            const inputField = document.getElementById(`admin_input_${personaName}`);
+            if (!inputField) return;
+            const newBalance = parseFloat(inputField.value);
+            if (isNaN(newBalance) || newBalance < 0) {
+              alert('Please enter a valid non-negative number.');
+              return;
+            }
+            if (personas[personaName]) {
+              personas[personaName].balance = Math.round(newBalance * 100) / 100;
+              savePersonas();
+              if (personaName === currentPersona) renderWallet();
+              renderAdminUserList();
+            }
+          });
+        });
+      }
+
+      function addTransaction(type, amount) {
+        const data = getCurrentData();
+        if (amount <= 0 || isNaN(amount) || !isFinite(amount)) {
+          alert('Please enter a valid positive amount.');
+          return false;
+        }
+        if (type === 'withdraw' && amount > data.balance + 0.0001) {
+          alert(`Insufficient demo balance. You have $${formatMoney(data.balance)}.`);
+          return false;
+        }
+        const roundedAmount = Math.round(amount * 100) / 100;
+        if (type === 'deposit') {
+          data.balance += roundedAmount;
+        } else {
+          data.balance -= roundedAmount;
+        }
+        data.balance = Math.round(data.balance * 100) / 100;
+        if (!data.transactions) data.transactions = [];
+        data.transactions.push({ type, amount: roundedAmount });
+        if (data.transactions.length > 20) {
+          data.transactions = data.transactions.slice(-20);
+        }
+        savePersonas();
+        renderWallet();
+        renderAdminUserList();
+        return true;
+      }
+
+      function getAmountFromInput() {
+        const rawValue = amountInput.value.trim();
+        if (rawValue === '') {
+          alert('Please enter an amount.');
+          return null;
+        }
+        const amount = parseFloat(rawValue);
+        if (isNaN(amount) || amount <= 0) {
+          alert('Please enter a valid positive number.');
+          return null;
+        }
+        return amount;
+      }
+
+      function clearInput() {
+        amountInput.value = '';
+      }
+
+      function handleQuickDeposit() { addTransaction('deposit', 50); }
+      function handleQuickWithdraw() { addTransaction('withdraw', 50); }
+
+      function handleCustomDeposit() {
+        const amount = getAmountFromInput();
+        if (amount === null) return;
+        if (addTransaction('deposit', amount)) clearInput();
+      }
+
+      function handleCustomWithdraw() {
+        const amount = getAmountFromInput();
+        if (amount === null) return;
+        if (addTransaction('withdraw', amount)) clearInput();
+      }
+
+      function resetCurrentPersona() {
+        const data = getCurrentData();
+        if (confirm(`Reset ${currentPersona}'s demo balance to $200.00? All transactions will be cleared.`)) {
+          data.balance = 200.00;
+          data.transactions = [];
+          savePersonas();
+          renderWallet();
+          renderAdminUserList();
+          clearInput();
+        }
+      }
+
+      function handlePresetClick(e) {
+        const amount = e.currentTarget.getAttribute('data-amount');
+        if (amount) amountInput.value = amount;
+      }
+
+      function showAdminPanel() {
+        adminPanel.classList.remove('hidden');
+        walletCard.classList.add('hidden');
+        renderAdminUserList();
+        if (addUserError) addUserError.textContent = '';
+        if (newUserNameInput) newUserNameInput.value = '';
+      }
+
+      function hideAdminPanel() {
+        adminPanel.classList.add('hidden');
+        walletCard.classList.remove('hidden');
+        renderWallet();
+      }
+
+      function addNewPersona() {
+        const name = newUserNameInput.value.trim().toLowerCase();
+        if (!name) {
+          addUserError.textContent = 'Enter a persona name.';
+          return;
+        }
+        if (name.length > 20) {
+          addUserError.textContent = 'Name too long (max 20).';
+          return;
+        }
+        if (personas[name]) {
+          addUserError.textContent = 'Persona already exists.';
+          return;
+        }
+        personas[name] = { balance: 200.00, transactions: [] };
+        savePersonas();
+        addUserError.textContent = '';
+        newUserNameInput.value = '';
+        renderAdminUserList();
+      }
+
+      function init() {
+        loadPersonas();
+        if (!personas[currentPersona]) {
+          const names = Object.keys(personas);
+          currentPersona = names.length > 0 ? names[0] : (personas['alex'] = { balance: 200.00, transactions: [] }, 'alex');
+        }
+        savePersonas();
+        renderWallet();
+
+        quickDepositBtn.addEventListener('click', handleQuickDeposit);
+        quickWithdrawBtn.addEventListener('click', handleQuickWithdraw);
+        depositCustomBtn.addEventListener('click', handleCustomDeposit);
+        withdrawCustomBtn.addEventListener('click', handleCustomWithdraw);
+        resetBtn.addEventListener('click', resetCurrentPersona);
+        presetBtns.forEach(btn => btn.addEventListener('click', handlePresetClick));
+        amountInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            handleCustomDeposit();
+          }
+        });
+
+        adminToggleBtn.addEventListener('click', showAdminPanel);
+        closeAdminBtn.addEventListener('click', hideAdminPanel);
+        addUserBtn.addEventListener('click', addNewPersona);
+        newUserNameInput.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            addNewPersona();
+          }
+        });
+      }
+
+      init();
+    })();
+  </script>
+</body>
+  </html>
